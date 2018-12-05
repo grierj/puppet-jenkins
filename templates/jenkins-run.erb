@@ -50,9 +50,20 @@ do
   JENKINS_JAVA_CMD="$candidate"
 done
 
-JAVA_CMD="$JENKINS_JAVA_CMD $JENKINS_JAVA_OPTIONS -DJENKINS_HOME=$JENKINS_HOME -jar $JENKINS_WAR"
+JAVA_CMD="$JENKINS_JAVA_CMD"
+
+# Split out all the java options on space.  Things that need spaces will need to have their own param
+# setup
+OIFS="$IFS"
+IFS=' '
+read -a JENKINS_JAVA_CMD_OPTIONS <<< "${JENKINS_JAVA_OPTIONS}"
+IFS="$OIFS"
 
 PARAMS=()
+PARAMS+=("${JENKINS_JAVA_CMD_OPTIONS[@]}")
+[ -n "$JENKINS_CSP_OPTIONS" ] && PARAMS+=("-Dhudson.model.DirectoryBrowserSupport.CSP=${JENKINS_CSP_OPTIONS}")
+PARAMS+=("-DJENKINS_HOME=$JENKINS_HOME")
+PARAMS+=("-jar" "$JENKINS_WAR")
 PARAMS+=("--logfile=/var/log/jenkins/jenkins.log")
 PARAMS+=("--webroot=/var/cache/jenkins/war")
 PARAMS+=("--daemon")
